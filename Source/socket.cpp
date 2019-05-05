@@ -5,8 +5,10 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #define IP_STR_LENGTH   (15)
+#define TIMEOUT         (3000)
 
 static int wsa_inited = false;
+static int timeout = TIMEOUT;
 static int listening = false;
 
 int hostname_to_addr(char *hostname, struct sockaddr_in *addr)
@@ -85,6 +87,9 @@ int socket_init(void)
     if (fd >= 0)
         return fd;
 
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
+    setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout));
+
     return -1;
 }
 
@@ -136,6 +141,7 @@ int socket_send(int fd, unsigned char *buffer, unsigned int length)
     ret = send(fd, (const char *)buffer, length, 0);
     if (-1 == ret) {
         closesocket(fd);
+        printf("error while send data, close it\n");
         return -1;
     }
 
@@ -155,6 +161,7 @@ int socket_recv(int fd, unsigned char *buffer, unsigned int length)
     ret = recv(fd, (char *)buffer, length, 0);
     if (-1 == ret) {
         closesocket(fd);
+        printf("error while recv data, close it\n");
         return -1;
     }
 
@@ -188,8 +195,10 @@ int socket_listen(int fd, short port, int backlog)
         sin.sin_port = htons(port);
         sin.sin_addr.S_un.S_addr = INADDR_ANY;
 
-        if (bind(fd, (LPSOCKADDR)&sin, sizeof(sin)) == SOCKET_ERROR)
+        if (bind(fd, (LPSOCKADDR)&sin, sizeof(sin)) == SOCKET_ERROR) {
+            printf("the port %d has been used, exit\n", port);
             goto socket_error;
+        }
 
         if (listen(fd, backlog) == SOCKET_ERROR)
             goto socket_error;

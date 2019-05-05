@@ -7,7 +7,7 @@
 
 #define RECV_BUF_LIMIT    (1024)
 
-int port = 80;
+int port = 81;
 int backlog = 5;
 
 unsigned char g_recv_buffer[RECV_BUF_LIMIT];
@@ -27,22 +27,23 @@ int main(int argc, char* argv[])
         client_fd = socket_listen(fd_server, port, backlog);
         if (INVALID_SOCKET == client_fd)
             goto server_socket_errror;
+        else
+            printf("accept client\n");
 
         while (true)
         {
             ret = socket_recv(client_fd, (unsigned char *)g_recv_buffer, RECV_BUF_LIMIT);
-            if (SOCKET_ERROR == ret) {
-                goto client_disconnect;
+            if (ret <= 0) {
+                break;
             }
             else {
+                printf("receive %d bytes\n", ret);
+
                 ret = socket_send(client_fd, (unsigned char *)g_recv_buffer, ret);
-                if (SOCKET_ERROR == ret)
-                    goto client_disconnect;
+                if (ret <= 0)
+                    break;
             }
         }
-
-    client_disconnect:
-        socket_uninit(client_fd);
     }
 
 server_socket_errror:
