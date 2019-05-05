@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1D6598D9-020E-4613-B696-7CD4A3714D2A}</ProjectGuid>
+    <ProjectGuid>{5DD593CA-4EF9-4FD1-B117-8B0E83449728}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Echo_Server</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
@@ -146,8 +146,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="hex_dump.cpp" />
-    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

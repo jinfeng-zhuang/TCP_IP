@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B521DBE8-7FF0-4C2F-982A-530E65F0AD0D}</ProjectGuid>
+    <ProjectGuid>{DAC7D5A1-F3D8-4379-9AB5-986FAC099852}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>TCP_Client</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
@@ -146,12 +146,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="hex_dump.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="socket.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="socket.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
