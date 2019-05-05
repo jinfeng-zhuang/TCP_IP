@@ -6,7 +6,7 @@
 
 static int socket_count = 0;
 
-int get_server_addr(char *hostname, struct sockaddr_in *addr)
+int hostname_to_addr(char *hostname, struct sockaddr_in *addr)
 {
     int ret;
     struct addrinfo *result, *cur;
@@ -16,7 +16,7 @@ int get_server_addr(char *hostname, struct sockaddr_in *addr)
 
     ret = getaddrinfo(hostname, NULL, NULL, &result);
     if (0 != ret)
-        return NULL;
+        return -1;
 
     for (cur = result; cur != NULL; cur = cur->ai_next) {
         if (AF_INET == cur->ai_family) {
@@ -35,7 +35,34 @@ int get_server_addr(char *hostname, struct sockaddr_in *addr)
     return 0;
 }
 
-// 两个并发的逻辑，有前置后置关系
+int hostname_to_ipv4(char *hostname, char *ip)
+{
+    int ret;
+    struct addrinfo *result, *cur;
+    struct sockaddr_in addr;
+
+    if ((!hostname) || (!ip))
+        return -1;
+
+    ret = getaddrinfo(hostname, NULL, NULL, &result);
+    if (0 != ret)
+        return -1;
+
+    for (cur = result; cur != NULL; cur = cur->ai_next) {
+        if (AF_INET == cur->ai_family) {
+            sprintf(ip, "%d.%d.%d.%d\n",
+                addr.sin_addr.S_un.S_un_b.s_b1,
+                addr.sin_addr.S_un.S_un_b.s_b2,
+                addr.sin_addr.S_un.S_un_b.s_b3,
+                addr.sin_addr.S_un.S_un_b.s_b4);
+
+            break;
+        }
+    }
+
+    return 0;
+}
+
 int socket_init(void)
 {
     WORD socket_version = MAKEWORD(2, 2);
@@ -57,10 +84,6 @@ int socket_init(void)
     return -1;
 }
 
-// 1,2是并列关系，没有前置后置关系，所以前面的出错不会影响后续的执行
-// 推荐的编码思路
-// 延伸：并发的编程思维
-// 遇到错误就返回，会让并发的逻辑走不下去
 int socket_uninit(int fd)
 {
     if (0 == closesocket(fd)) // 1
@@ -84,7 +107,7 @@ int socket_connect(int fd, const char *hostname, short port)
     if (!hostname)
         return -1;
 
-    ret = get_server_addr((char *)hostname, &server_addr);
+    ret = hostname_to_addr((char *)hostname, &server_addr);
     if (0 != ret)
         return -1;
 

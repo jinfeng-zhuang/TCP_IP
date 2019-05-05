@@ -1,0 +1,8 @@
+/TCP_Client/Debug
+/TCP_Client/x64
+/Echo_Server/Debug
+/Echo_Server/x64
+
+*.db
+*.opendb
+*.suo
