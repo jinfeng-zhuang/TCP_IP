@@ -5,6 +5,8 @@ extern int socket_init(void);
 
 extern int socket_uninit(int fd);
 
+extern int socket_listen(int fd, short port, int backlog);
+
 extern int socket_connect(int fd, const char *hostname, short port);
 
 extern int socket_send(int fd, unsigned char *buffer, unsigned int length);
