@@ -141,11 +141,11 @@ int socket_send(int fd, unsigned char *buffer, unsigned int length)
     ret = send(fd, (const char *)buffer, length, 0);
     if (-1 == ret) {
         closesocket(fd);
-        printf("error while send data, close it\n");
+        printf("send error, connection closed\n");
         return -1;
     }
 
-    return 0;
+    return ret;
 }
 
 int socket_recv(int fd, unsigned char *buffer, unsigned int length)
@@ -161,11 +161,11 @@ int socket_recv(int fd, unsigned char *buffer, unsigned int length)
     ret = recv(fd, (char *)buffer, length, 0);
     if (-1 == ret) {
         closesocket(fd);
-        printf("error while recv data, close it\n");
+        printf("recv error, connection closed\n");
         return -1;
     }
 
-    return 0;
+    return ret;
 }
 
 void socket_error(void)

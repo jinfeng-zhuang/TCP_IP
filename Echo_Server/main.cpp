@@ -37,8 +37,6 @@ int main(int argc, char* argv[])
                 break;
             }
             else {
-                printf("receive %d bytes\n", ret);
-
                 ret = socket_send(client_fd, (unsigned char *)g_recv_buffer, ret);
                 if (ret <= 0)
                     break;
