@@ -2,14 +2,17 @@
 #include <winsock2.h>
 #include <WS2tcpip.h>
 
+#include "socket.h"
+
 #pragma comment(lib, "ws2_32.lib")
 
-#define IP_STR_LENGTH   (15)
-#define TIMEOUT         (3000)
+#define TIMEOUT             (3000)
+#define DEFAULT_BACKLOG     (5)
 
 static int wsa_inited = false;
 static int timeout = TIMEOUT;
 static int listening = false;
+static int backlog = DEFAULT_BACKLOG;
 
 int hostname_to_addr(char *hostname, struct sockaddr_in *addr)
 {
@@ -26,13 +29,6 @@ int hostname_to_addr(char *hostname, struct sockaddr_in *addr)
     for (cur = result; cur != NULL; cur = cur->ai_next) {
         if (AF_INET == cur->ai_family) {
             memcpy(addr, cur->ai_addr, sizeof(struct sockaddr_in));
-
-            printf("%s: %d.%d.%d.%d\n", hostname,
-                (*addr).sin_addr.S_un.S_un_b.s_b1,
-                (*addr).sin_addr.S_un.S_un_b.s_b2,
-                (*addr).sin_addr.S_un.S_un_b.s_b3,
-                (*addr).sin_addr.S_un.S_un_b.s_b4);
-
             break;
         }
     }
@@ -40,7 +36,7 @@ int hostname_to_addr(char *hostname, struct sockaddr_in *addr)
     return 0;
 }
 
-int hostname_to_ipv4(char *hostname, char *ip)
+int hostname_to_ipv4(const char *hostname, char *ip)
 {
     int ret;
     struct addrinfo *result, *cur;
@@ -56,7 +52,7 @@ int hostname_to_ipv4(char *hostname, char *ip)
     for (cur = result; cur != NULL; cur = cur->ai_next) {
         if (AF_INET == cur->ai_family) {
             memcpy(&addr, cur->ai_addr, sizeof(struct sockaddr_in));
-            sprintf_s(ip, IP_STR_LENGTH, "%d.%d.%d.%d\n",
+            sprintf_s(ip, IP_STRING_LENGTH, "%d.%d.%d.%d\n",
                 addr.sin_addr.S_un.S_un_b.s_b1,
                 addr.sin_addr.S_un.S_un_b.s_b2,
                 addr.sin_addr.S_un.S_un_b.s_b3,
@@ -69,12 +65,10 @@ int hostname_to_ipv4(char *hostname, char *ip)
     return 0;
 }
 
-int socket_init(void)
+int network_start(void)
 {
     WORD socket_version = MAKEWORD(2, 2);
     WSADATA wsa_data;
-
-    int fd;
 
     if (false == wsa_inited) {
         if (WSAStartup(socket_version, &wsa_data) != 0)
@@ -83,20 +77,49 @@ int socket_init(void)
             wsa_inited = true;
     }
 
-    fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (fd >= 0)
-        return fd;
-
-    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
-    setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout));
-
-    return -1;
+    return 0;
 }
 
-int socket_uninit(int fd)
+int socket_open(void)
+{
+    int fd;
+
+    if (false == wsa_inited)
+        return -1;
+
+    fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (-1 == fd)
+        return -1;
+
+    if (-1 == setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout))) {
+        closesocket(fd);
+        return -1;
+    }
+
+    if (-1 == setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout))) {
+        closesocket(fd);
+        return -1;
+    }
+
+    return fd;
+}
+
+int network_stop(void)
 {
     if (false == wsa_inited)
-        WSACleanup();
+        return -1;
+
+    WSACleanup();
+
+    return 0;
+}
+
+int socket_close(int fd)
+{
+    if (false == wsa_inited)
+        return -1;
+
+    closesocket(fd);
 
     return 0;
 }
@@ -139,7 +162,7 @@ int socket_send(int fd, unsigned char *buffer, unsigned int length)
         return -1;
 
     ret = send(fd, (const char *)buffer, length, 0);
-    if (-1 == ret) {
+    if (ret <= 0) {
         closesocket(fd);
         printf("send error, connection closed\n");
         return -1;
@@ -159,7 +182,7 @@ int socket_recv(int fd, unsigned char *buffer, unsigned int length)
         return -1;
 
     ret = recv(fd, (char *)buffer, length, 0);
-    if (-1 == ret) {
+    if (ret <= 0) {
         closesocket(fd);
         printf("recv error, connection closed\n");
         return -1;
@@ -180,7 +203,7 @@ void socket_error(void)
     printf("socket error %d\n", err);
 }
 
-int socket_listen(int fd, short port, int backlog)
+int socket_listen(int fd, short port)
 {
     sockaddr_in sin;
     int client_fd;

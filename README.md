@@ -26,8 +26,6 @@
 
 ## 后续
 
-* 增加主动关闭 socket 的能力
-* 建议增加 net_start, net_stop, socket_open, socket_close 等接口
 * 支持多线程
-* socket_listen 去掉 backlog 参数
 * 完善 timeout 功能
+* 每个 API 在单独的文件中实现，更容易维护

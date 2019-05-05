@@ -3,12 +3,9 @@
 
 #include <socket.h>
 
-#pragma comment(lib, "ws2_32.lib")
-
 #define RECV_BUF_LIMIT    (1024)
 
-int port = 81;
-int backlog = 5;
+int port = 10086;
 
 unsigned char g_recv_buffer[RECV_BUF_LIMIT];
 
@@ -18,35 +15,36 @@ int main(int argc, char* argv[])
     SOCKET client_fd;
     int ret;
 
-    fd_server = socket_init();
-    if (INVALID_SOCKET == fd_server)
-        goto wsa_clean;
+    if (-1 == network_start())
+        goto server_socket_error;
+
+    fd_server = socket_open();
+    if (-1 == fd_server)
+        goto server_socket_error;
 
     while (true)
     {
-        client_fd = socket_listen(fd_server, port, backlog);
-        if (INVALID_SOCKET == client_fd)
-            goto server_socket_errror;
-        else
-            printf("accept client\n");
+        client_fd = socket_listen(fd_server, port);
+        if (-1 == client_fd)
+            goto server_socket_error;
+
+        printf("accept a client\n");
 
         while (true)
         {
             ret = socket_recv(client_fd, (unsigned char *)g_recv_buffer, RECV_BUF_LIMIT);
-            if (ret <= 0) {
+            if (-1 == ret) {
                 break;
             }
-            else {
-                ret = socket_send(client_fd, (unsigned char *)g_recv_buffer, ret);
-                if (ret <= 0)
-                    break;
-            }
+
+            ret = socket_send(client_fd, (unsigned char *)g_recv_buffer, ret);
+            if (-1 == ret)
+                break;
         }
     }
 
-server_socket_errror:
-wsa_clean:
-    socket_uninit(fd_server);
+server_socket_error:
+    network_stop();
 
     return 0;
 }
