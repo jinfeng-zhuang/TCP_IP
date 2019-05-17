@@ -7,22 +7,17 @@
 * 为了避免维护状态机，及时将错误的 socket 关闭
 * 这套 API 主要使用了更加直观的参数
 * 不怎么变动的参数不放在 API 里面，如 backlog ，选择使用静态配置
+* 尽量简化数量，否则达不到封装的目的
 
 ## API
 
-	extern int socket_init(void);
+	extern int socket_listen(short port);
 
-	extern int socket_uninit(int fd);
-
-	extern int socket_listen(int fd, short port, int backlog);
-
-	extern int socket_connect(int fd, const char *hostname, short port);
+	extern int socket_connect(const char *hostname, short port);
 
 	extern int socket_send(int fd, unsigned char *buffer, unsigned int length);
 
 	extern int socket_recv(int fd, unsigned char *buffer, unsigned int length);
-
-	extern int hostname_to_ipv4(char *hostname, char *ipv4);
 
 ## 后续
 
